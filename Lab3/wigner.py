@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-
+import sys
 def zad1(N,n):
     matrix=np.random.randn(n,N,N)
     matrix=(matrix+np.swapaxes(matrix,1,2))/2
@@ -49,6 +49,41 @@ def zad2(N,n,kind="goe"):
     ax.set_ylabel("$P(s)$")
     plt.savefig("zad2_{}_{}_{}.png".format(kind,N,n),dpi=500)
 
+def zad3(M,n,K):
+    hbar=2*np.pi/M
+    base=np.arange(0,M)*2*np.pi/M
+    base=np.random.rand(n).reshape(-1,1)*2*np.pi+base
+    #print(base.shape)
+    V=np.exp(-1j/(hbar)*K*np.cos(base))
+    P=np.exp(-1j/(2*hbar)*base**2)
+    print(V.shape,P.shape)
+    H=np.zeros([n,M,M],dtype=np.complex64)
+    for i in range(M):
+        fun=np.zeros([n,M],dtype=np.complex64)
+        fun[:,i]=1
+        fun*=V
+        funp=np.fft.fft(fun)
+        #funp/=np.linalg.norm(funp)
+        funp*=P
+        fun=np.fft.ifft(funp)
+        #print(np.linalg.norm(fun))
+        fun/=np.linalg.norm(fun)
+        H[:,i,:]=fun
+    #print(np.linalg.norm(H))
+    eigen,_=np.linalg.eig(H)
+    eigen=np.sort(eigen)
+    eigen=eigen[:,M//4:M//4*3]
+    diff=np.diff(eigen)
+    diff/=np.mean(diff)
+    fig=plt.figure(figsize=(12,8))
+    ax=plt.axes()
+    ax.hist(diff.flatten(),bins=50,density=True)
+    ax.set_title("$K={}$,$M={}$,$n={}$".format(K,M,n))
+    plt.savefig("zad3_{}_{}_{}.png".format(M,n,K))
+
+zad3(100,20,5)
+zad3(100,20,1)
+sys.exit()
 for s in ((6,20000),(20,10000),(200,500)):
     zad1(*s)
 zad2(200,500)
